@@ -296,10 +296,6 @@ Fixpoint combine_aux
         (getElementAt 0 lv val)::(combine_aux n y val maxval (counter+1) lv)
   end.
 
-Compute getElementAt 0 [1;2;3] 2.
-
-Compute combine_aux 9 3 0 2 1 [0;1].
-
 Fixpoint combine
   (m : nat) (* number of atoms [to iterate] *)
   (natoms : nat) (* number of atoms *)
@@ -313,8 +309,6 @@ Fixpoint combine
         (combine_aux nrows (v^(natoms-(natoms - m + 1))) 0 (v-1) 1 lv)
         ::(combine n natoms nrows lv)
   end.
-
-Compute combine 2 2 3 [0;1].
 
 Definition distributeVals
   {X : Type}
@@ -414,23 +408,25 @@ Fixpoint make_aux
   {X : Type}
   (valT : btree X)
   (lcomp : list X)
-  (eval : X -> btree X -> btree X)
+  (logic : X -> btree X -> list nat -> btree X)
+  (V : list nat)
   :=
   match lcomp with
   | nil => valT
   | h::tl =>
-      let ntree := eval h valT in (make_aux ntree tl eval)
+      let ntree := logic h valT V in (make_aux ntree tl logic V)
   end.
 
 Fixpoint make
   {X : Type}
   (iniValT : list (btree X))
   (lcomp : list X)
-  (eval : X -> btree X -> btree X)
+  (logic : X -> btree X -> list nat -> btree X)
+  (V : list nat)
   :=
   match iniValT with
   | nil => nil
-  | h::tl => (make_aux h lcomp eval)::(make tl lcomp eval)
+  | h::tl => (make_aux h lcomp logic V)::(make tl lcomp logic V)
   end.
 
 (********
@@ -602,7 +598,11 @@ Fixpoint reverseListOrder
   | h::tl => (reverseListOrder tl)++(h::nil)
   end.
 
-Compute reverseListOrder [0;1;2;3].
+Fixpoint reverseThisList {X : Type} (l : list (list X)) :=
+  match l with
+  | nil => nil
+  | h::tl => (reverseListOrder h)::(reverseThisList tl)
+  end.
 
 (* 
 
@@ -664,29 +664,6 @@ Fixpoint compare
       end
   end.
 
-(* Compute compare
-
-  ((fun a => Nat.eqb a 2)
-     ::((fun a => Nat.eqb a 2))::nil)
-          
-  eqb_lf
-
-  [
-    (Node LF 0 (! "P"));
-    (Node LF 1 ([](! "P")));
-    (Node LF 1 ([]([](! "P"))));
-    (Node LF 1 ([]([](! "P" ~> ! "P"))))
-  ]
-
-  [
-    (Node LF 1 (! "P"));
-    (Node LF 2 ([]([](! "P"))));
-    (Node LF 0 ([](! "P")));
-    (Node LF 0 ([]([](! "P" ~> ! "P"))))
-  ]
-.*)
-
-
 Fixpoint EvalForest_aux5
   {X : Type}
   (cmp : X -> X -> bool)
@@ -725,38 +702,6 @@ Fixpoint EvalForest_aux4
       (Pair _ _ h (parse (EvalForest_aux5 cmp b h false) nil))
         ::(EvalForest_aux4 cmp b tl)
   end.
-
-(* Definition b1 :=
-  Alpha LF (Node LF 0 (! "P"))
-         (Beta LF (Alpha LF (Node LF 1 (! "P" ~> ! "P")) (Alpha LF (Node LF 0 ([] (! "P" ~> ! "P"))) (Leaf LF true)))
-            (Alpha LF (Node LF 2 (! "P" ~> ! "P")) (Alpha LF (Node LF 2 ([] (! "P" ~> ! "P"))) (Leaf LF true)))).
-
-Definition b1' :=
-  Alpha LF (Node LF 0 (! "P"))
-         (Beta LF (Alpha LF (Node LF 1 (! "P" ~> ! "P")) (Alpha LF (Node LF 0 ([] (! "P" ~> ! "P"))) (Leaf LF true)))
-            (Alpha LF (Node LF 1 (! "P" ~> ! "P")) (Alpha LF (Node LF 2 ([] (! "P" ~> ! "P"))) (Leaf LF true)))).
-
-Definition b2 :=
-  Alpha LF (Node LF 0 (! "P"))
-    (Alpha LF (Node LF 1 (! "P" ~> ! "P"))
-       (Alpha LF (Node LF 0 ([] ! "P"))
-          (Leaf LF true))).
-
-Definition b3 :=
-  Alpha LF (Node LF 1 (! "P"))
-         (Alpha LF (Node LF 0 (! "Q"))
-            (Alpha LF (Node LF 0 (! "P" ~> ! "Q")) (Alpha LF (Node LF 0 ([] (! "P" ~> ! "Q"))) (Leaf LF false)))).
-
-Definition ln1 :=
-  [([](! "P" ~> ! "P")); ((! "P" ~> ! "Q"))].
-
-Definition ln2 :=
-  [(! "P");(! "P" ~> ! "P")].
-
-Definition ln3 :=
-  [(! "P" ~> ! "Q");(! "P");(! "Q")].
-
-Compute eqb_btree eqb_lf b1 b1'. *)
 
 Fixpoint lookForEmpty
   {X : Type}
@@ -909,7 +854,7 @@ Definition MakeWithoutPrune
   (eqb_AB leb_AB : X -> X -> bool)
   (length_A : X -> nat)
   (split : X -> list X)
-  (logic : X -> btree X -> btree X)
+  (logic : X -> btree X -> list nat -> btree X)
   (default: X)
   (A : X)
   (V : list nat)
@@ -926,7 +871,7 @@ Definition MakeWithoutPrune
          V)
   in
   let sub_A := GetComposed eqb_AB leb_AB length_A split A in
-  let forest := make init sub_A logic in
+  let forest := make init sub_A logic V in
   flattenList (parseVal (forest)).
 
 (* 
@@ -976,7 +921,7 @@ Definition MakeWithPrune
   (eqb_AB leb_AB : X -> X -> bool)
   (length_A : X -> nat)
   (split : X -> list X)
-  (logic : X -> btree X -> btree X)
+  (logic : X -> btree X -> list nat -> btree X)
   (pruning : list (nat -> bool))
   (default: X)
   (A : X)
@@ -995,6 +940,6 @@ Definition MakeWithPrune
   in
   let rows_A := nOfRows eqb_AB leb_AB length_A split A V in
   let sub_A := GetComposed eqb_AB leb_AB length_A split A in
-  let forest := make init sub_A logic in
+  let forest := make init sub_A logic V in
   flattenList (parseVal (MakeWithPrune_aux eqb_AB pruning forest rows_A)).
 
