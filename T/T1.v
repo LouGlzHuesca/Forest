@@ -1,6 +1,8 @@
 (** T 
 
-    * File for T specific definitions   
+In this file, we implement the modal logic T using the RNmatrix described in
+
+GRÄTZ, Lukas. Truth tables for modal logics T and S4, by using three-valued non-deterministic level semantics. Journal of Logic and Computation, v. 32, n. 1, p. 129-157, 2022. 
 
 ***)
 
