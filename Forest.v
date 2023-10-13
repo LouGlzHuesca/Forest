@@ -934,15 +934,7 @@ Definition MakeWithoutPrune
 HEURÍSTICAS
 ------------
 
-Uma heurística de um algoritmo é admissível quando leva a um resultado (output) equivalente ao resultado obtido pelo mesmo algoritmo sem heurística.
-
-Heurística trivial: parar quando o algoritmo não produzir nenhuma alteração na árvore. Essa heurística é trivialmente admissível e aparece no artigo de Gratz.
-
-Novas heurísticas: ?
-
-(não-admissibilidade poderia ser aceitável?)
-
- *)
+*)
 
 (* true iff lb1 = lb2 *)
 Fixpoint forest_cmp
