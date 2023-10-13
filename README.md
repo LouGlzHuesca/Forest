@@ -1,6 +1,6 @@
 # Forest
 
-[Forest](Forest.v) frames the basic definitions of RNmatrix [1] in Coq. Building upon this, we have implemented the following logics:
+[Forest](Forest.v) frames the basic definitions of RNmatrix [1] in Coq. Building upon this, we have, currently, implemented the following logics:
 
 1. [Cn](Cn/Cn1.v) via the RNmatrix described in [1] for the family of da Costa's paraconsistent logics $C_n$.
 2. [T](T/T1.v) via the RNmatrix described in [2] for the modal logic **T**.
